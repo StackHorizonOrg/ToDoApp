@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Utente {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  cognome       String
+  email         String   @unique
+  cellulare     String   @unique
+  password      String
+  notifWhatsapp Boolean  @default(false)
+  notifEmail    Boolean  @default(false)
+  OTP           String
+  verificato    Boolean  @default(false)
+  Evento        Evento[]
+}
+
+model Evento {
+  id          Int      @id @default(autoincrement())
+  titolo      String
+  descrizione String?
+  stato       String   @default("in corso")
+  dataOra     DateTime
+  idUtente    Int
+  Utente      Utente?  @relation(fields: [utenteId], references: [id])
+  utenteId    Int?
+}
