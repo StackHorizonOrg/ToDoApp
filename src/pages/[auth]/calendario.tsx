@@ -130,7 +130,9 @@ export default function Calendario() {
 
     // Funzione per cambiare stato di una task (completata/in corso)
     const toggleTask = (id: string | number) => {
-        updateTask.mutate({id: Number(id)});
+        if((tasks.find(task => task.id === id).completed) === 'in corso') {
+            updateTask.mutate({id: Number(id)});
+        }
     };
     // Funzione per eliminare una task
     const deleteTask = (id: string) => {
