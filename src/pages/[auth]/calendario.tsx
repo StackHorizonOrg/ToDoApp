@@ -9,6 +9,7 @@ import {Button} from "@/components/ui/button";
 import {ChevronLeft, ChevronRight} from "lucide-react";
 import {Card, CardContent} from "@/components/ui/card";
 import {Trash2} from "lucide-react";
+import {trpc} from "../../utils/trpc";
 
 const mainColor = "#2563eb";
 const bgColor = "#f4f6fb";
@@ -23,6 +24,17 @@ export default function Calendario() {
     const tasksForSelectedDate = tasks.filter(task =>
         task.dueDate && task.dueDate == selectedDate
     );
+
+
+    const getTaskByDate = trpc.tasks.getByDate.useMutation({
+        onSuccess: (data) => {
+            console.log(data);
+            setTasks(data);
+        },
+        onError: (error) => {
+            console.error("Errore nel recupero delle task:", error);
+        }
+    });
 
     // Attività di esempio coerenti con la home
     const defaultTasks = [
@@ -46,17 +58,32 @@ export default function Calendario() {
             description: 'Sentiti con qualcuno che non senti da tempo',
             date: new Date(2025, 8, 30, 18, 0).toISOString(),
             completed: 'in corso',
+        },{
+            id: 'esempio-4',
+            title: 'Chiamata con un amico',
+            description: 'Sentiti con qualcuno che non senti da tempo',
+            date: new Date(2025, 8, 30, 18, 0).toISOString(),
+            completed: 'in corso',
+        },{
+            id: 'esempio-5',
+            title: 'Chiamata con un amico',
+            description: 'Sentiti con qualcuno che non senti da tempo',
+            date: new Date(2025, 8, 30, 18, 0).toISOString(),
+            completed: 'in corso',
+        },{
+            id: 'esempio-6',
+            title: 'Chiamata con un amico',
+            description: 'Sentiti con qualcuno che non senti da tempo',
+            date: new Date(2025, 8, 30, 18, 0).toISOString(),
+            completed: 'in corso',
+        },{
+            id: 'esempio-7',
+            title: 'Chiamata con un amico',
+            description: 'Sentiti con qualcuno che non senti da tempo',
+            date: new Date(2025, 8, 30, 18, 0).toISOString(),
+            completed: 'in corso',
         },
     ];
-
-    // Funzioni fittizie per demo
-    const [demoTasks, setDemoTasks] = useState(defaultTasks);
-    const toggleTask = (id: string) => {
-        setDemoTasks(tasks => tasks.map(t => t.id === id ? { ...t, completed: t.completed === 'in corso' ? 'completata' : 'in corso' } : t));
-    };
-    const deleteTask = (id: string) => {
-        setDemoTasks(tasks => tasks.filter(t => t.id !== id));
-    };
 
     useEffect(() => {
         const stored = sessionStorage.getItem("user");
@@ -77,6 +104,30 @@ export default function Calendario() {
             router.replace("/");
         }
     }, []);
+
+    // Funzione per formattare la data in YYYY-MM-DD
+    const formatDate = (date: Date) => {
+        return date.toISOString().slice(0, 10);
+    };
+
+    // Carica eventi della data selezionata
+    const fetchTasksForDate = (date: Date, idUser: number) => {
+        getTaskByDate.mutate({ date: formatDate(date), idUser });
+    };
+
+    // Aggiorna tasks quando arrivano dal server
+    useEffect(() => {
+        if (getTaskByDate.data) {
+            setTasks(getTaskByDate.data);
+        }
+    }, [getTaskByDate.data]);
+
+    // Carica eventi della data odierna quando utente è pronto
+    useEffect(() => {
+        if (user && selectedDate) {
+            fetchTasksForDate(selectedDate, user.id);
+        }
+    }, [user, selectedDate]);
 
     if (loading) {
         return (
@@ -104,6 +155,17 @@ export default function Calendario() {
             </div>
         );
     }
+
+    // Funzione per cambiare stato di una task (completata/in corso)
+    const toggleTask = (id: string) => {
+        setTasks(tasks => tasks.map(t => t.id === id ? { ...t, completed: t.completed === 'in corso' ? 'completata' : 'in corso' } : t));
+        // Qui puoi aggiungere la chiamata al backend per aggiornare lo stato se necessario
+    };
+    // Funzione per eliminare una task
+    const deleteTask = (id: string) => {
+        setTasks(tasks => tasks.filter(t => t.id !== id));
+        // Qui puoi aggiungere la chiamata al backend per eliminare la task se necessario
+    };
 
     return (
         <div style={{
@@ -151,7 +213,10 @@ export default function Calendario() {
                         <button
                             type="button"
                             aria-label="Giorno precedente"
-                            onClick={() => setSelectedDate(subDays(selectedDate, 1))}
+                            onClick={() => {
+                                const newDate = subDays(selectedDate, 1);
+                                setSelectedDate(newDate);
+                            }}
                             style={{
                                 background: '#f4f6fb',
                                 border: '1.5px solid #e5e7eb',
@@ -266,13 +331,16 @@ export default function Calendario() {
                                 minWidth: 40,
                                 letterSpacing: 0.2,
                             }}>
-                                {tasksForSelectedDate.length} {tasksForSelectedDate.length === 1 ? 'impegno' : 'impegni'}
+                                {tasks.length} {tasks.length === 1 ? 'impegno' : 'impegni'}
                             </div>
                         </div>
                         <button
                             type="button"
                             aria-label="Giorno successivo"
-                            onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+                            onClick={() => {
+                                const newDate = addDays(selectedDate, 1);
+                                setSelectedDate(newDate);
+                            }}
                             style={{
                                 background: '#f4f6fb',
                                 border: '1.5px solid #e5e7eb',
@@ -323,14 +391,14 @@ export default function Calendario() {
                     className="tasks-scrollable-list"
                     style={{
                         width: '100%',
-                        maxWidth: 600,
+                        maxWidth: '80%',
                         margin: '0 auto',
                         background: '#fff',
                         borderRadius: 16,
                         boxShadow: '0 2px 12px #2563eb18',
                         padding: 'clamp(10px, 3vw, 22px)',
                         minHeight: 80,
-                        maxHeight: 340,
+                        maxHeight: '50vh',
                         overflowY: 'auto',
                         border: '1.5px solid #e0e7ff',
                         display: 'flex',
@@ -340,19 +408,11 @@ export default function Calendario() {
                         boxSizing: 'border-box',
                     }}
                 >
-                    <div style={{
-                        fontWeight: 800,
-                        fontSize: 18,
-                        color: mainColor,
-                        marginBottom: 8,
-                        textAlign: 'center',
-                        letterSpacing: 0.3,
-                    }}>
-                        Attività di esempio
-                    </div>
-                    {demoTasks.map((task) => (
+                    {tasks.map((task) => (
                         <div key={task.id}
                             style={{
+                                marginTop: 5,
+                                marginBottom: 5,
                                 display: 'flex',
                                 flexDirection: 'column',
                                 background: '#f4f6fb',

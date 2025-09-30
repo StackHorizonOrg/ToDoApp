@@ -62,5 +62,29 @@ export const tasksRouter = router({
             console.error('Errore aggiornamento stato task:', error);
             throw new Error('Errore aggiornamento stato task');
         }
+    }),
+    getByDate: taskProcedure.input(z.object({
+        idUser: z.number(),
+        date: z.string()
+    })).mutation(async ({input}) => {
+        const {idUser, date} = input;
+        try {
+            const dateTmp = new Date(date);
+            const formattedBase = dateTmp.toISOString().slice(0, 10);
+            const startOfDay = `${formattedBase}T00:00:00.000Z`;
+            const endOfDay = `${formattedBase}T23:59:59.000Z`;
+
+            const query =
+                `SELECT id, titolo AS title, descrizione AS description, dataOra AS date, stato AS completed
+                   FROM Evento
+                   WHERE idUtente = ? 
+                     AND dataOra BETWEEN ? AND ?
+                   ORDER BY (completed = 'in corso') DESC, dataOra ASC`;
+            const [rows] = await pool.query( query, [idUser, startOfDay, endOfDay]);
+            return rows as any[];
+        } catch (error) {
+            console.error('Errore recupero tasks per data:', error);
+            throw new Error('Errore recupero tasks per data');
+        }
     })
 });
