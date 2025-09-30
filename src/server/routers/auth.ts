@@ -11,11 +11,11 @@ export const authRouter = router({
             email: z.string().min(1).email(),
             password: z.string().min(1)
         }))
-        .mutation(async ({input}) => { 
+        .mutation(async ({input}) => {
             const {email, password} = input;
 
             const [rows] = await pool.query('SELECT * FROM Utente WHERE email = ? AND password = ?', [email, password]);
-            const users = rows as any[]; 
+            const users = rows as any[];
 
             delete users[0]?.password;
             delete users[0]?.otp;
@@ -30,6 +30,29 @@ export const authRouter = router({
                 };
             } else {
                 throw new Error("Non è stato possibile effettuare il login. Controlla le credenziali e riprova.");
+            }
+        }),
+    uploadUtente: authProcedure
+        .input(z.object({
+            id: z.number(),
+            nome: z.string(),
+            cognome: z.string(),
+            password: z.string(),
+            notifWhatsapp: z.number(),
+            notifEmail: z.number()
+        }))
+        .mutation(async ({input}) => {
+            const {id, nome, cognome, password, notifWhatsapp, notifEmail} = input;
+            if(password.length > 6){
+                await pool.query('UPDATE Utente SET nome = ?, cognome = ?, password = ?, notifWhatsapp = ?, notifEmail = ? WHERE id = ?', [nome, cognome, password, notifWhatsapp, notifEmail, id]);
+            }else if(password.length > 0 && password.length <= 6){
+                throw new Error("La password deve essere di almeno 6 caratteri.");
+            }else{
+                await pool.query('UPDATE Utente SET nome = ?, cognome = ?, notifWhatsapp = ?, notifEmail = ? WHERE id = ?', [nome, cognome, notifWhatsapp, notifEmail, id]);
+            }
+            return {
+                success: true,
+                message: 'Utente aggiornato con successo'
             }
         }),
     register: authProcedure
@@ -93,12 +116,12 @@ export const authRouter = router({
                     text: `Il tuo codice OTP è: ${otp}`
                 });
                 return { success: true, message: 'OTP inviato via email' };
-            } 
+            }
             let numero = cellulare;
             if (!numero.startsWith('+39')) {
                 numero = '+39' + numero;
             }
-            numero = numero.replace('+', '');  
+            numero = numero.replace('+', '');
             const body = {
                 number: numero,
                 text: `Il tuo codice OTP è: ${otp}`
@@ -119,10 +142,10 @@ export const authRouter = router({
                     throw new Error("Errore invio OTP via WhatsApp: " + text);
                 }
                 return { success: true, message: "OTP inviato via WhatsApp", response: text };
-            } 
+            }
             // Qui puoi aggiungere la logica di invio email con l'OTP
             return { success: true, message: `OTP inviato via ${tipo}` };
-        }),    
+        }),
         verifyOtp: authProcedure
         .input(z.object({
             email: z.string().min(1).email(),
@@ -144,5 +167,5 @@ export const authRouter = router({
             await pool.query('UPDATE Utente SET verificato = 1  WHERE email = ?', [email]);
             return { success: true, message: 'OTP verificato con successo' };
         }),
- 
+
 });

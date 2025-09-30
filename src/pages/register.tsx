@@ -19,7 +19,12 @@ export default function RegisterPage() {
             sessionStorage.setItem("user", JSON.stringify(data));
             setRegisterError('');
             setRegistrationCompleted(true);
-            //dopo la registrazione deve fare la ricezione dell'otp di conferma vai email/whatsapp
+            // Redirect automatico a OTP se non verificato
+            if (!data.user?.verificato) {
+                window.location.href = "/otp";
+            } else {
+                window.location.href = "/auth/home";
+            }
         },
         onError: (error) => {
             setRegisterError(error.message);

@@ -22,7 +22,7 @@ export default function IndexPage() {
             if (data.user.verificato) {
                 router.push('/auth/home');
             } else {
-                router.push('/components/otp');
+                router.push('./otp');
             }
         },
         onError: (error) => {

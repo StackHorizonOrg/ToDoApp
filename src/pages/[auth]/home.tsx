@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import {Trash2} from "lucide-react";
 import {trpc} from "../../utils/trpc";
-
 const mainColor = "#2563eb";
 const bgColor = "#f4f6fb";
 const borderColor = "#e5e7eb";
@@ -20,6 +19,7 @@ export default function HomePage() {
     const [loading, setLoading] = useState(true);
     const [totalCount, setTotalCount] = useState(0);
     const [completedCount, setCompletedCount] = useState(0);
+    const [loaderMessage, setLoaderMessage] = useState("Controllo accesso...");
     const [user, setUser] = useState<any>(null);
     const [tasks, setTasks] = useState<Array<any>>([]);
     // Stato per la modale di aggiunta task
@@ -43,6 +43,7 @@ export default function HomePage() {
             setTasks(data);
             setTotalCount(data.length);
             setCompletedCount(data.filter((t: any) => t.completed !== 'in corso').length);
+            setLoading(false);
         },
         onError: (error) => {
             console.error("Non è stato possibile recuperare le task", error);
@@ -105,8 +106,9 @@ export default function HomePage() {
             } else {
                 setUser(parsed.user);
                 const idUser = JSON.parse(sessionStorage.getItem("user") || "").user.id;
+                setLoaderMessage("Caricamento task...");
                 getTasks.mutate({idUser});
-                setLoading(false);
+
             }
         } catch {
             router.replace("/");
@@ -115,7 +117,9 @@ export default function HomePage() {
     if (loading) {
 
         return (
+
             <div style={{background: bgColor, minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+                <Navbar/>
                 <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                     <div style={{
                         width: 56,
@@ -127,7 +131,7 @@ export default function HomePage() {
                         marginBottom: 22
                     }} />
                     <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-                    <span style={{color: mainColor, fontWeight: 600, fontSize: '1.13rem', letterSpacing: 0.2}}>Controllo accesso...</span>
+                    <span style={{color: mainColor, fontWeight: 600, fontSize: '1.13rem', letterSpacing: 0.2}}>{loaderMessage}</span>
                 </div>
             </div>
         );
@@ -174,7 +178,7 @@ export default function HomePage() {
                             textAlign: 'center',
                         }}
                     >
-                        I miei Task
+                        I miei Tasks
                     </h1>
                     <p
                         style={{
@@ -211,8 +215,8 @@ export default function HomePage() {
                         aria-label="Aggiungi nuovo task"
                         onClick={() => setShowAddCard(true)}
                     >
-                        <span style={{fontSize: '1.5em', fontWeight: 900, marginRight: 4, lineHeight: 1}}>＋</span>
-                        Aggiungi nuovo task
+                        <span style={{fontSize: '1.5em', fontWeight: 900, marginRight: 4, lineHeight: 1,color: "#FFFFFF"}}>＋</span>
+                        <span style={{color: "#FFFFFF"}}>Aggiungi nuovo task</span>
                     </Button>
                     {/* Card per aggiunta task */}
                     {showAddCard && (

@@ -16,10 +16,9 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <QueryClientProvider client={queryClient}>
         <Head>
-            <title>Nome App</title>
-            <meta name="description" content="Descrizione della tua app" />
+            <meta name="description" content="Insubrica. Applicazione web per la gestione delle task." />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <title> TodoApp</title>
+            <title>Todo</title>
             {/* altri meta tag */}
         </Head>
       <Component {...pageProps} />
