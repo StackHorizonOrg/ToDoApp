@@ -24,66 +24,19 @@ export default function Calendario() {
     const tasksForSelectedDate = tasks.filter(task =>
         task.dueDate && task.dueDate == selectedDate
     );
+    const [loadingMessage, setLoadingMessage] = useState("Caricamento in corso...");
 
 
     const getTaskByDate = trpc.tasks.getByDate.useMutation({
         onSuccess: (data) => {
-            console.log(data);
             setTasks(data);
+            setLoading(false);
         },
         onError: (error) => {
             console.error("Errore nel recupero delle task:", error);
+            setLoading(false);
         }
     });
-
-    // Attività di esempio coerenti con la home
-    const defaultTasks = [
-        {
-            id: 'esempio-1',
-            title: 'Leggi un libro',
-            description: 'Dedica almeno 30 minuti alla lettura',
-            date: new Date(2025, 8, 30, 9, 0).toISOString(),
-            completed: 'in corso',
-        },
-        {
-            id: 'esempio-2',
-            title: 'Passeggiata',
-            description: 'Fai una passeggiata all’aria aperta',
-            date: new Date(2025, 8, 30, 12, 0).toISOString(),
-            completed: 'in corso',
-        },
-        {
-            id: 'esempio-3',
-            title: 'Chiamata con un amico',
-            description: 'Sentiti con qualcuno che non senti da tempo',
-            date: new Date(2025, 8, 30, 18, 0).toISOString(),
-            completed: 'in corso',
-        },{
-            id: 'esempio-4',
-            title: 'Chiamata con un amico',
-            description: 'Sentiti con qualcuno che non senti da tempo',
-            date: new Date(2025, 8, 30, 18, 0).toISOString(),
-            completed: 'in corso',
-        },{
-            id: 'esempio-5',
-            title: 'Chiamata con un amico',
-            description: 'Sentiti con qualcuno che non senti da tempo',
-            date: new Date(2025, 8, 30, 18, 0).toISOString(),
-            completed: 'in corso',
-        },{
-            id: 'esempio-6',
-            title: 'Chiamata con un amico',
-            description: 'Sentiti con qualcuno che non senti da tempo',
-            date: new Date(2025, 8, 30, 18, 0).toISOString(),
-            completed: 'in corso',
-        },{
-            id: 'esempio-7',
-            title: 'Chiamata con un amico',
-            description: 'Sentiti con qualcuno che non senti da tempo',
-            date: new Date(2025, 8, 30, 18, 0).toISOString(),
-            completed: 'in corso',
-        },
-    ];
 
     useEffect(() => {
         const stored = sessionStorage.getItem("user");
@@ -97,8 +50,6 @@ export default function Calendario() {
                 router.replace("/components/otp");
             } else {
                 setUser(parsed.user);
-                const idUser = JSON.parse(sessionStorage.getItem("user") || "").user.id;
-                setLoading(false);
             }
         } catch {
             router.replace("/");
@@ -112,13 +63,24 @@ export default function Calendario() {
 
     // Carica eventi della data selezionata
     const fetchTasksForDate = (date: Date, idUser: number) => {
+        setLoading(true);
+        setLoadingMessage("Caricamento task...");
         getTaskByDate.mutate({ date: formatDate(date), idUser });
     };
 
+    const deleteTaskMutation = trpc.tasks.deleteTask.useMutation({
+        onSuccess: (data)=>{
+            fetchTasksForDate(selectedDate, user.id);
+        },
+        onError(error){
+            console.error("Non è stato possibile eliminare la task", error);
+        }
+    });
     // Aggiorna tasks quando arrivano dal server
     useEffect(() => {
         if (getTaskByDate.data) {
             setTasks(getTaskByDate.data);
+            setLoading(false);
         }
     }, [getTaskByDate.data]);
 
@@ -126,6 +88,8 @@ export default function Calendario() {
     useEffect(() => {
         if (user && selectedDate) {
             fetchTasksForDate(selectedDate, user.id);
+            setLoadingMessage("Caricamento task...");
+            // RIMOSSO setLoading(false) qui
         }
     }, [user, selectedDate]);
 
@@ -150,7 +114,7 @@ export default function Calendario() {
                         marginBottom: 22
                     }}/>
                     <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-                    <span style={{color: mainColor, fontWeight: 600, fontSize: '1.13rem', letterSpacing: 0.2}}>Controllo accesso...</span>
+                    <span style={{color: mainColor, fontWeight: 600, fontSize: '1.13rem', letterSpacing: 0.2}}>{loadingMessage}</span>
                 </div>
             </div>
         );
@@ -163,8 +127,8 @@ export default function Calendario() {
     };
     // Funzione per eliminare una task
     const deleteTask = (id: string) => {
+        deleteTaskMutation.mutate({id: Number(id)});
         setTasks(tasks => tasks.filter(t => t.id !== id));
-        // Qui puoi aggiungere la chiamata al backend per eliminare la task se necessario
     };
 
     return (
@@ -331,7 +295,7 @@ export default function Calendario() {
                                 minWidth: 40,
                                 letterSpacing: 0.2,
                             }}>
-                                {tasks.length} {tasks.length === 1 ? 'impegno' : 'impegni'}
+                                {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
                             </div>
                         </div>
                         <button
