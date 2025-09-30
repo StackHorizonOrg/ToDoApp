@@ -76,6 +76,14 @@ export default function Calendario() {
             console.error("Non è stato possibile eliminare la task", error);
         }
     });
+    const updateTask = trpc.tasks.updateTaskStatus.useMutation({
+        onSuccess: (data)=> {
+            fetchTasksForDate(selectedDate, user.id);
+        },
+        onError(error){
+            console.error("Non è stato possibile aggiornare lo stato della task", error);
+        }
+    });
     // Aggiorna tasks quando arrivano dal server
     useEffect(() => {
         if (getTaskByDate.data) {
@@ -121,14 +129,12 @@ export default function Calendario() {
     }
 
     // Funzione per cambiare stato di una task (completata/in corso)
-    const toggleTask = (id: string) => {
-        setTasks(tasks => tasks.map(t => t.id === id ? { ...t, completed: t.completed === 'in corso' ? 'completata' : 'in corso' } : t));
-        // Qui puoi aggiungere la chiamata al backend per aggiornare lo stato se necessario
+    const toggleTask = (id: string | number) => {
+        updateTask.mutate({id: Number(id)});
     };
     // Funzione per eliminare una task
     const deleteTask = (id: string) => {
         deleteTaskMutation.mutate({id: Number(id)});
-        setTasks(tasks => tasks.filter(t => t.id !== id));
     };
 
     return (
