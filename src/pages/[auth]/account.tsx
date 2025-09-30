@@ -56,6 +56,7 @@ export default function Account() {
     const uploadUtente = trpc.auth.uploadUtente.useMutation({
         onSuccess: (data) => {
             return "Utente aggiornato con successo";
+            setLoading(false);
         },
         onError: (error) =>{
             return "Non è stato possibile aggiornare l'utente. Se il problema persiste contatta l'amministratore";
@@ -64,6 +65,8 @@ export default function Account() {
 
     const formSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        setLoadingMessage("Salvataggio in corso...");
+        setLoading(true);
         if (!user) return;
         setSaving(true);
         setSaveMessage(null);
@@ -369,6 +372,8 @@ export default function Account() {
                             onSubmit={formSubmit}
                         >
                             {saving && (
+
+
                                 <div style={{ color: '#2563eb', fontWeight: 600, textAlign: 'center', marginBottom: 8 }}>
                                     Salvataggio in corso...
                                 </div>

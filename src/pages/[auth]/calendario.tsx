@@ -260,7 +260,10 @@ export default function Calendario() {
                                         <Calendar
                                             mode="single"
                                             selected={selectedDate}
-                                            onSelect={date => date && setSelectedDate(date)}
+                                            onSelect={date => {
+                                                console.log(date);
+                                                 return date && setSelectedDate(date);
+                                            }}
                                             initialFocus
                                             locale={it}
                                             style={{borderRadius: 12, background: '#fff', border: 'none', boxShadow: 'none', minWidth: 210, maxWidth: '100vw'}}
@@ -378,7 +381,7 @@ export default function Calendario() {
                         boxSizing: 'border-box',
                     }}
                 >
-                    {tasks.map((task) => (
+                    {tasks.length > 0?tasks.map((task) => (
                         <div key={task.id}
                             style={{
                                 marginTop: 5,
@@ -439,7 +442,9 @@ export default function Calendario() {
                                 <div style={{fontSize: 13, color: '#334155', marginTop: 6, whiteSpace: 'pre-line'}}>{task.description}</div>
                             )}
                         </div>
-                    ))}
+                    )): (<div>
+                        <span style={{color: '#64748b', fontWeight: 500, fontSize: 14, textAlign: 'center', display: 'block', marginTop: 12}}>Nessuna task per questa data.</span>
+                    </div>)}
                     <style>{`
                         .tasks-scrollable-list::-webkit-scrollbar {
                             width: 6px;
