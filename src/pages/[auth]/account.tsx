@@ -399,8 +399,7 @@ export default function Account() {
                                     <input
                                         type={field.type}
                                         placeholder={field.placeholder}
-                                        value={form[field.key]}
-                                        onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
+                                        value={form[field.key as keyof typeof form]}                                        onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                                         style={{
                                             padding: "12px 15px",
                                             borderRadius: 10,
